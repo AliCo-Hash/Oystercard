@@ -5,14 +5,16 @@ describe Oystercard do
   let(:min_balance) {Oystercard::MIN_BALANCE}
   let(:max_balance) {Oystercard::MAX_BALANCE}
   
-  let(:station) { double(:station, :name => "Liverpool Street") }
+  let(:entry_station) { double(:station, :name => "Liverpool Street") }
+  let(:exit_station) { double(:station, :name => "Holborn") }
+
 
   subject(:oystercard) { described_class.new } 
   
   RSpec.shared_context "shared", :shared_context => :metadata do
     def top_up_touch_in
       oystercard.top_up(min_balance)
-      oystercard.touch_in(station)
+      oystercard.touch_in(entry_station)
     end
   end
 
@@ -46,17 +48,17 @@ describe Oystercard do
 
     it 'can touch out' do
       top_up_touch_in
-      oystercard.touch_out
+      oystercard.touch_out(exit_station)
       expect(oystercard).not_to be_in_journey
     end
 
     it 'should raise an error if the balance is less than minimum balance' do
-      expect { oystercard.touch_in(station) }.to raise_error('Card has less than minimum balance')
+      expect { oystercard.touch_in(entry_station) }.to raise_error('Card has less than minimum balance')
     end
 
     it 'should touch out minimum fare' do
       top_up_touch_in
-      expect { oystercard.touch_out }.to change { oystercard.balance }.by(-min_balance)
+      expect { oystercard.touch_out(exit_station) }.to change { oystercard.balance }.by(-min_balance)
     end
 
   end
@@ -64,16 +66,32 @@ describe Oystercard do
   describe '#touch_in' do
     it "stores the station" do
       top_up_touch_in
-      expect(oystercard.entry_station.name).to eq station.name
+      expect(oystercard.entry_station.name).to eq entry_station.name
     end
 
   end
 
   describe '#touch_out' do
-    it "" do
+    it "store an exit station " do
       top_up_touch_in
-      oystercard.touch_out
-      expect(oystercard.entry_station).to be_nil
+      oystercard.touch_out(exit_station)
+      expect(oystercard.exit_station.name).to eq "Holborn"
+    end
+
+  end 
+
+  describe '#journey_history' do
+    it 'shows the journey history' do
+      top_up_touch_in
+      oystercard.touch_out(exit_station)
+      expect(oystercard.journey_history).to include("Liverpool Street" => "Holborn")
+    end
+
+    it "is empty on initialisation" do
+      expect(oystercard.journey_history).to be_empty
     end
   end
+
+
+
 end

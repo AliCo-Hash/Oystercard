@@ -1,7 +1,9 @@
 require 'oystercard.rb'
 
 describe Oystercard do
-    
+  let(:min_balance) {Oystercard::MIN_BALANCE}
+  let(:max_balance) {Oystercard::MAX_BALANCE}
+
     it 'should have a balance of zero' do
         expect(subject.balance).to eq(0)
     end
@@ -14,7 +16,6 @@ describe Oystercard do
       end
 
       it 'should raise an error if maximum balance exceeded' do
-        max_balance = Oystercard::MAX_BALANCE
         subject.top_up(max_balance)
         expect { subject.top_up 1 }.to raise_error('Maximum balance of #{max_balance} exceeded')
       end
@@ -26,13 +27,13 @@ describe Oystercard do
       end
 
       it 'can touch in' do
-        subject.top_up(Oystercard::MIN_BALANCE)
+        subject.top_up(min_balance)
         subject.touch_in
         expect(subject).to be_in_journey
       end
 
       it 'can touch out' do
-        subject.top_up(Oystercard::MIN_BALANCE)
+        subject.top_up(min_balance)
         subject.touch_in
         subject.touch_out
         expect(subject).not_to be_in_journey
@@ -43,9 +44,9 @@ describe Oystercard do
       end
 
       it 'should touch out minimum fare' do
-        subject.top_up(Oystercard::MIN_BALANCE)
+        subject.top_up(min_balance)
         subject.touch_in
-        expect { subject.touch_out }.to change { subject.balance }.by(-Oystercard::MIN_FARE)
+        expect { subject.touch_out }.to change { subject.balance }.by(-min_balance)
       end
 
     end
